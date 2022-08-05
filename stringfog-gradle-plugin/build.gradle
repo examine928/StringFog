@@ -22,16 +22,55 @@ sourceSets {
     }
 }
 
-group=GROUP
-archivesBaseName=ARTIFACTID
-version=VERSION
+def mVersion = '3.0.0-nh-SNAPSHOT'
+//def mVersion = '1.2.6'
+def mArtifactId = 'gradle-plugin'
+def mGroup = 'com.github.megatronking.stringfog'
+project.archivesBaseName = mArtifactId
+
+// authentication
+Properties properties = new Properties()
+def propertiesFile = project.rootProject.file('local.properties')
+if (propertiesFile.exists()) {
+    properties.load(propertiesFile.newDataInputStream())
+}
+String mMavenUserName = properties.getProperty('MAVEN_USER_NAME', "")
+String mMavenUserPassword = properties.getProperty('MAVEN_USER_PASSWORD', "")
+String mReleaseRepositoryUrl = properties.getProperty('MAVEN_RELEASE_REPOSITORY_URL', "")
+String mSnapshotRepositoryUrl = properties.getProperty('MAVEN_SNAPSHOT_REPOSITORY_URL', "")
+if (mMavenUserName.isEmpty() || mMavenUserPassword.isEmpty()) {
+//    throw new Exception("请配置账号密码")
+}
 
 [compileJava, compileGroovy, javadoc]*.options*.encoding = 'UTF-8'
+
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            repository(url: uri('../maven'))
+//        }
+//    }
+//}
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri('../maven'))
+            repository(url: mReleaseRepositoryUrl) {
+                authentication(
+                        userName: mMavenUserName,
+                        password: mMavenUserPassword
+                )
+            }
+            snapshotRepository(url: mSnapshotRepositoryUrl) {
+                authentication(
+                        userName: mMavenUserName,
+                        password: mMavenUserPassword
+                )
+            }
+
+            pom.version = mVersion
+            pom.artifactId = mArtifactId
+            pom.groupId = mGroup
         }
     }
 }
